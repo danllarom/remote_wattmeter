@@ -22,11 +22,12 @@ class Screens{
       int *punt_long_a;
       int *punt_b;
       int *punt_long_b;
-      int *punt_muestras;
+      int *punt_samples;
+      int *punt_last_sample;
       int screennumbert=0;
       
       //constructores: 
-      Screens(SignalProcessing *punt_voltage, SignalProcessing *punt_current, SignalProcessing *punt_power, int* punt_muestras, int *punt_a, int *punt_long_a ,int *punt_b ,int *punt_long_b);
+      Screens(SignalProcessing *punt_voltage, SignalProcessing *punt_current, SignalProcessing *punt_power, int* punt_samples, int *punt_last_sample, int *punt_a, int *punt_long_a ,int *punt_b ,int *punt_long_b);
                               
       //metodos:
       void init();
@@ -40,7 +41,7 @@ class Screens{
       
 };
 
-Screens::Screens(SignalProcessing *punt_vol, SignalProcessing *punt_curr, SignalProcessing *punt_powe, int *punt_mu, int *punte_a, int *punte_long_a ,int *punte_b ,int *punte_long_b){
+Screens::Screens(SignalProcessing *punt_vol, SignalProcessing *punt_curr, SignalProcessing *punt_powe, int *punt_mu, int *punt_last, int *punte_a, int *punte_long_a ,int *punte_b ,int *punte_long_b){
       punt_voltage=punt_vol;
       punt_current=punt_curr;
       punt_power=punt_powe;
@@ -48,7 +49,8 @@ Screens::Screens(SignalProcessing *punt_vol, SignalProcessing *punt_curr, Signal
       punt_long_a=punte_long_a;
       punt_b=punte_b;
       punt_long_b=punte_long_b;
-      punt_muestras=punt_mu;
+      punt_samples=punt_mu;
+      punt_last_sample=punt_last;
 }
 
 void Screens::init(){
@@ -126,18 +128,23 @@ void Screens::screen1(){
 void Screens::screen2(){
   *punt_long_b=2;
   screennumbert=*punt_b;
-  int i;
+  int x,y=*punt_last_sample;
   tft.fillScreen(ST77XX_BLACK);  
-  for(i=0; i<120; i++){
+  for(x=0; x<120; x++){
+    if(y >=120 ){
+     y=0;
+    }
+    
     if(*punt_a == 0 || *punt_a == 3){
-      tft.drawPixel(i*4, 60-*(punt_muestras+4*i+0)/2, ST77XX_BLUE);
+      tft.drawPixel(x*4, 60-*(punt_samples+4*y+0)/2, ST77XX_BLUE);
     }
     if(*punt_a == 1 || *punt_a == 3){
-      tft.drawPixel(i*4, 60-*(punt_muestras+4*i+1)/2, ST77XX_RED);  
+      tft.drawPixel(x*4, 60-*(punt_samples+4*y+1)/2, ST77XX_RED);  
     }
     if(*punt_a == 2 || *punt_a == 3){
-      tft.drawPixel(i*4, 60-*(punt_muestras+4*i+2)/100, ST77XX_GREEN);  
+      tft.drawPixel(x*4, 60-*(punt_samples+4*y+2)/100, ST77XX_GREEN);  
     }
+    y++;
   }
 
   tft.setTextSize(1);
