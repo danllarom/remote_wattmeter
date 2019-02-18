@@ -2,10 +2,15 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 
+
 ESP8266WebServer server(80);
 
+char mesage1[20000]="Voltage    Current    Power      Reactive\n";
+bool shipping_status=false;
+
 void handleRoot() {
-  server.send(200, "text/plain", "hello world");
+  server.send(20000, "text/plain", mesage1);
+  shipping_status=true;
 }
 
 void handleNotFound() {

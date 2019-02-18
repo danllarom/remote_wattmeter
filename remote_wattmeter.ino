@@ -6,7 +6,6 @@
 #include <SPI.h>
 
 
-
 int cs[2]={3,1};//5, 4
 int rdy=16;
 
@@ -15,6 +14,7 @@ float constant2=0.00001, offset2=-28;
 float constant3=1, offset3=0;
 
 int samples[120][4];
+char data[200];
 int *punt_samples=&samples[0][0];
 int last_sample=0;
 int *punt_last_sample=&last_sample;
@@ -61,7 +61,7 @@ void loop(void) {
   samples[last_sample][1]=current.instant_value;
   samples[last_sample][2]=power.instant_value;
   samples[last_sample][3]=t;
-      
+     
   last_sample++;
   if(last_sample>=120){
     last_sample=0;
@@ -70,7 +70,17 @@ void loop(void) {
   if(micros()-t_screen>1000000){
     adread.finish();
     pantalla.refresh();
-    adread.init();  
+    adread.init();
+    if(shipping_status==false){
+      sprintf(data, "%10.2f %10.2f %10.2f %10.2f\n", voltage.average_quadratic_value, current.average_quadratic_value, power.average_value, power.average_negative_values_respect_average_value*p);
+      sprintf(mesage1, "%s%s", mesage1, data);
+    }
+    else{
+      sprintf(mesage1,"Voltage    Current    Power      Reactive\n");
+      sprintf(data, "%10.2f %10.2f %10.2f %10.2f\n", voltage.average_quadratic_value, current.average_quadratic_value, power.average_value, power.average_negative_values_respect_average_value*p);
+      sprintf(mesage1, "%s%s", mesage1, data);
+      shipping_status=false;
+    }
     t_screen=micros();
   }
 }
