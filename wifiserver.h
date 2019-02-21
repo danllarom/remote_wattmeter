@@ -5,7 +5,7 @@
 
 ESP8266WebServer server(80);
 
-char mesage1[800]="_________time ____date ___Voltage ___Current _____Power __Reactive\n";
+char mesage1[800]="___________time ______date ___Voltage ___Current _____Power __Reactive\n";
 bool shipping_status=false;
 
 void handleRoot() {

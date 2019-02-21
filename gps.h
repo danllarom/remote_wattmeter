@@ -31,5 +31,5 @@ void set_time(){
 }
 
 void time_now(time_t hour_time, char date[25]){
-  sprintf(date, "%02i%02i%02i.%06i %02i%02i%04i",hour(hour_time), minute(hour_time), second(hour_time), nowMicros(), day(hour_time), month(hour_time), year(hour_time)); 
+  sprintf(date, "%02i:%02i:%02i.%06i %04i-%02i-%02i",hour(hour_time), minute(hour_time), second(hour_time), nowMicros(), year(hour_time), month(hour_time), day(hour_time)); 
 }

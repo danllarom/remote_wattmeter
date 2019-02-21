@@ -93,7 +93,7 @@ void loop(void) {
       sprintf(mesage1, "%s%s", mesage1, data);
     }
     else{
-      sprintf(mesage1,"_________time ____date ___Voltage ___Current _____Power __Reactive\n");
+      sprintf(mesage1,"___________time ______date ___Voltage ___Current _____Power __Reactive\n");
       sprintf(data, "%s %010.2f %010.2f %010.2f %010.2f\n", date, voltage.average_quadratic_value, current.average_quadratic_value, power.average_value, power.average_negative_values_respect_average_value*p);
       sprintf(mesage1, "%s%s", mesage1, data);
       shipping_status=false;
