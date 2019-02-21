@@ -5,11 +5,11 @@
 
 ESP8266WebServer server(80);
 
-char mesage1[20000]="Voltage    Current    Power      Reactive\n";
+char mesage1[800]="_________time ____date ___Voltage ___Current _____Power __Reactive\n";
 bool shipping_status=false;
 
 void handleRoot() {
-  server.send(20000, "text/plain", mesage1);
+  server.send(800, "text/plain", mesage1);
   shipping_status=true;
 }
 

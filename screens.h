@@ -5,9 +5,9 @@
 #include <Adafruit_GFX.h>    // Core graphics library
 #include <Adafruit_ST7735.h> // Hardware-specific library for ST7735
 #include <Adafruit_ST7789.h> // Hardware-specific library for ST7789
-#define TFT_CS        15//NULL //2
+#define TFT_CS          15//2
 #define TFT_RST        -1 // Or set to -1 and connect to Arduino RESET pin
-#define TFT_DC          3
+#define TFT_DC          0
 
 float p = 3.1415926;
 
