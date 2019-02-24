@@ -9,6 +9,7 @@
 #define TFT_RST        -1 // Or set to -1 and connect to Arduino RESET pin
 #define TFT_DC          0
 
+
 float p = 3.1415926;
 
 class Screens{
@@ -25,6 +26,7 @@ class Screens{
       int *punt_samples;
       int *punt_last_sample;
       int screennumbert=0;
+
       
       //constructores: 
       Screens(SignalProcessing *punt_voltage, SignalProcessing *punt_current, SignalProcessing *punt_power, int* punt_samples, int *punt_last_sample, int *punt_a, int *punt_long_a ,int *punt_b ,int *punt_long_b);

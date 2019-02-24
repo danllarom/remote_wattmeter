@@ -37,6 +37,8 @@ int cp=0;
 int cn=1;
 float t, t_screen=micros();
 char date[25];
+int lines_mensage=0;
+time_t hour_time;
 
 
 void setup() {
@@ -53,12 +55,14 @@ void setup() {
 }
 
 void loop(void) {
-
+  
+  delayMicroseconds(2);
   server.handleClient();
+  delayMicroseconds(2);
   
   adread.readchannel(value, cp, cn);
   
-  time_t hour_time=now();
+  hour_time=now();
   t=(float)hour_time*1000000+nowMicros();
 
 
@@ -77,29 +81,31 @@ void loop(void) {
   }
     
   if(micros()-t_screen > 1000000){
+    t_screen=micros();
     
     adread.finish();  
-    
+    delayMicroseconds(500);
     pantalla.refresh();  
-     
+    delayMicroseconds(10);
     adread.init();
     
     set_time();
-
+    
     time_now(hour_time, date);
     
     if(shipping_status==false){
-      sprintf(data, "%s %010.2f %010.2f %010.2f %010.2f\n", date, voltage.average_quadratic_value, current.average_quadratic_value, power.average_value, power.average_negative_values_respect_average_value*p);
-      sprintf(mesage1, "%s%s", mesage1, data);
+      if(lines_mensage<8){
+        sprintf(data, "%s %010.2f %010.2f %010.2f %010.2f\n", date, voltage.average_quadratic_value, current.average_quadratic_value, power.average_value, power.average_negative_values_respect_average_value*p);
+        sprintf(mesage1, "%s%s", mesage1, data);
+        lines_mensage++;
+      }
     }
     else{
       sprintf(mesage1,"___________time ______date ___Voltage ___Current _____Power __Reactive\n");
       sprintf(data, "%s %010.2f %010.2f %010.2f %010.2f\n", date, voltage.average_quadratic_value, current.average_quadratic_value, power.average_value, power.average_negative_values_respect_average_value*p);
       sprintf(mesage1, "%s%s", mesage1, data);
       shipping_status=false;
-    }
-    
-    t_screen=micros();
-    
+      lines_mensage=0;
+    }     
   }
 }
