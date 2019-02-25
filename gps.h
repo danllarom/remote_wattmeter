@@ -14,7 +14,7 @@ void gps_init(){
 
 void set_time(){
   
-  while (SerialGPS.available() && timeStatus() == timeNotSet) {
+  while (SerialGPS.available()){
     
     if (gps.encode(SerialGPS.read())) {
       unsigned long age;

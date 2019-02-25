@@ -251,6 +251,9 @@ uint32_t nowMicros() {
   return MicrosSecond;
 }
 
+void reset_statusset(){
+  Status=timeNotSet;
+}
 
 void resetNow(){
   MicrosSecond=0;

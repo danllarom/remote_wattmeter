@@ -35,7 +35,7 @@ Screens pantalla = Screens(punt_voltage, punt_current, punt_power, punt_samples,
 float value[2] = {0,0};
 int cp=0;
 int cn=1;
-float t, t_screen=micros();
+float t, t_screen=micros(), t_gps=micros();
 char date[25];
 int lines_mensage=0;
 time_t hour_time;
@@ -89,7 +89,7 @@ void loop(void) {
     delayMicroseconds(10);
     adread.init();
     
-    set_time();
+    
     
     time_now(hour_time, date);
     
@@ -106,6 +106,17 @@ void loop(void) {
       sprintf(mesage1, "%s%s", mesage1, data);
       shipping_status=false;
       lines_mensage=0;
-    }     
+    }
+    if(micros()-t_gps > 900000000 || timeStatus() == timeNotSet){
+      reset_statusset();
+      set_time();
+    }
+    
+  }
+  if(micros()-t_screen < 0){
+    t_screen=micros();
+  }
+  if(micros()-t_gps < 0){
+    t_gps=micros();
   }
 }
