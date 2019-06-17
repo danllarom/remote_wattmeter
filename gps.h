@@ -3,7 +3,7 @@
 #include <SoftwareSerial.h>
 
 
-SoftwareSerial SerialGPS = SoftwareSerial(4, NULL, false, 256);
+SoftwareSerial SerialGPS = SoftwareSerial(15, NULL, false, 256);
 TinyGPS gps; 
 
 const int offset = 1;
