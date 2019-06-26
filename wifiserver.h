@@ -8,27 +8,30 @@
 ESP8266WebServer server(80);
 
 bool shipping_status=false;
+bool reset_status=false;
 
-//const char* psid = "LowiD7E0";
-//const char* password = "B87BLCFKWEDC3M";
+const char* psid = "LowiD7E0";
+const char* password = "B87BLCFKWEDC3M";
 
 //const char* psid = "vodafoneD5D8";
 //const char* password = "Fedaropa4";
 
-const char* psid = "AndroidAP0377";
-const char* password = "31fd356818b5";
+//const char* psid = "AndroidAP0377";
+//const char* password = "31fd356818b5";
 
 void handleRoot() {
   server.send(8000, "text/plain", mesage1);
   shipping_status=true;
 }
-void hola(){
-  server.send(8000, "text/html", mesage3);
-  shipping_status=true;
+void menu(){
+  server.send(8000, "text/html", menuHTML);
+}
+void wifi(){
+  server.send(8000, "text/html", wifiHTML);
 }
 void Reset(){
-  //adread.calibrateOffset();
-  //ESP.reset();
+  server.send(800, "text/html", "Reseteando...");
+  reset_status=true;
 }
 void handleLogin() {     
   if( ! server.hasArg("ssid") || ! server.hasArg("password") 
@@ -39,7 +42,7 @@ void handleLogin() {
   else{ // If both the username and the password are correct
     //ssid=server.arg("ssid");
     //password=server.arg("password");
-    ESP.restart();
+    reset_status=true;
   }
 }
 
@@ -73,9 +76,10 @@ void initserver(){
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 
-  server.on("/", handleRoot);
-  server.on("/2", hola);
-  server.on("/Reset", Reset);
+  server.on("/", menu);
+  server.on("/data", handleRoot);
+  server.on("/reset", Reset);
+  server.on("/wifi", wifi);
   server.on("/login", HTTP_POST, handleLogin);
 
   server.on("/inline", []() {
@@ -86,6 +90,7 @@ void initserver(){
 
   server.begin();
   Serial.println("HTTP server started");
+
 }
 
 void initPA(){
@@ -101,4 +106,5 @@ void initPA(){
   server.begin();
   Serial.println("HTTP server started");
 }
+
 

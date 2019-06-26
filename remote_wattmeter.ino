@@ -8,6 +8,7 @@ void sampling();
 
 double value[2] = {0,0};
 char data[200];
+char device[10]="wat1";
 int lines_mensage=0;
 int cp=0;
 int cn=1;
@@ -21,12 +22,12 @@ int gain[2]={2,2};
 float gainAmplifier=0.125;
 
 float gainDivResVol=3001;
-float gainVoltage=1.018*gainAmplifier*gainDivResVol;
+float gainVoltage=gainAmplifier*gainDivResVol;
 
 float gainDivResCur=1/0.01;
-float gainCurrent=1.048*gainAmplifier*gainDivResCur;
+float gainCurrent=gainAmplifier*gainDivResCur;
 
-float offsetVoltage=-3;
+float offsetVoltage=-0.9;
 float offsetCurrent=0;
   
 float maxFrecuencies=60;
@@ -48,14 +49,16 @@ void setup() {
   Serial.begin(115200);
   pinMode(0, INPUT);
   attachInterrupt(digitalPinToInterrupt(0), handler, FALLING);
-  adread.ads1256config(1, gain, 0, 0, 0, 1, 0, 1);
+  adread.ads1256config(1, gain, 0, 0, 0, 0, 0, 1);
   initserver();
-  unsigned int val[2]={0, 0};
-  //adread.setOffset(val);
+  unsigned int val[2]={0x44AC08, 0x44AC08};
+  adread.setOffset(val);
 }
 
 void loop() {
-  sampling();
+  if (gps.encode(SerialGPS.read())==0) {
+    sampling();
+  }
   delayMicroseconds(2);
   server.handleClient();
   delayMicroseconds(2);
@@ -63,9 +66,9 @@ void loop() {
   if(pre_nowmicros>890000){
     pre_nowmicros=0;
   }
-  if((nowMicros()-pre_nowmicros)>99000 && (nowMicros()-pre_nowmicros)<101000){
-  //if((micros()-t_data)> 1000000){
-    
+  //if((nowMicros()-pre_nowmicros)>99000 && (nowMicros()-pre_nowmicros)<101000){
+  if((micros()-t_data)> 1000000){
+    /*
     if(nowMicros()>990000 || nowMicros()<10000){
       if(nowMicros()>90000){
         loosen=((voltage.time_loosen_signal-((double)nowMicros()-1000000)/1000000)); 
@@ -161,18 +164,19 @@ void loop() {
         loosen=360+loosen;
       }
     }
+    */
     pre_nowmicros=nowMicros();
     
     t_data=micros();
     time_now(hour_time, date);  
     if(shipping_status==false && lines_mensage<50){
-      sprintf(data, "%s %010.2f %010.2f %010.2f %010.2f\n", date, voltage.average_quadratic_value, current.average_quadratic_value, power.average_value, power.average_negative_values_respect_average_value);//loosen);
+      sprintf(data, "% 10s %s %010.2f %010.2f %010.2f %010.2f\n", device, date, voltage.average_quadratic_value, current.average_quadratic_value, power.average_value, power.average_negative_values_respect_average_value);//loosen);
       sprintf(mesage1, "%s%s", mesage1, data);
       lines_mensage++;
     }
-    else{
-      sprintf(mesage1,"___________time ______date ___Voltage ___Current _____Power __Reactive\n");
-      sprintf(data, "%s %010.2f %010.2f %010.2f %010.2f\n", date, voltage.average_quadratic_value, current.average_quadratic_value, power.average_value, power.average_negative_values_respect_average_value);//loosen);
+    if(shipping_status==true){
+      sprintf(mesage1,"____device ___________time ______date ___Voltage ___Current _____Power __Reactive\n");
+      sprintf(data, "% 10s %s %010.2f %010.2f %010.2f %010.2f\n", device, date, voltage.average_quadratic_value, current.average_quadratic_value, power.average_value, power.average_negative_values_respect_average_value);//loosen);
       sprintf(mesage1, "%s%s", mesage1, data);
       shipping_status=false;
       lines_mensage=0;
@@ -184,8 +188,14 @@ void loop() {
     //Serial.println(voltage.average_value, 10);  
     //Serial.println(current.average_value, 10);
     //Serial.println(current.sampling_frequency, 10);
+    //Serial.println((voltage.average_quadratic_value*current.average_quadratic_value)/sqrt(pow(power.average_value, 2)+pow(power.average_quadratic_value-power.average_value-power.average_negative_values_respect_average_value, 2)+pow(power.average_negative_values_respect_average_value, 2)));
+    //Serial.println((((voltage.positive_average_value*(1-voltage.sign_factor)-voltage.negative_average_value*voltage.sign_factor))*((current.positive_average_value*(1-current.sign_factor)-current.negative_average_value*current.sign_factor)))/((2*power.average_negative_values_respect_average_value*power.sign_factor)/3.1415926+power.average_value*(1-2*power.sign_factor)));
+    pre_nowmicros=nowMicros();  
     
-    pre_nowmicros=nowMicros();   
+    if(reset_status==true){
+      ESP.restart();
+      //ESP.reset();
+    } 
   }
   if(micros()-t_data < 0){
     t_data=micros();
@@ -193,13 +203,18 @@ void loop() {
   if(micros()-t_gps < 0){
     t_gps=micros();
   }
-  //Serial.println(current.instant_value*100);
+  Serial.print(power.instant_value);
+  Serial.print(",");
+  Serial.print(current.instant_value*100);
+  Serial.print(",");
   Serial.println(voltage.instant_value);
+  //Serial.print(current.average_value*100);
+  //Serial.print(",");
+  //Serial.println(voltage.average_value*10);
 }
 
 void handler(){
-  //initPA();
-  adread.calibrateOffset();
+  initPA();
 }
 
 void sampling() {
@@ -209,12 +224,16 @@ void sampling() {
   
   hour_time=now();    
   t=hour_time*1000000+nowMicros();
-  //if(t_before-t_before2<500){
+  if(t_before-t_before2<2000){
     voltage.Processing(value[0], (double)t_before/1000000);
     current.Processing(value[1], (double)t_before/1000000);
     power.Processing((voltage.instant_value)*(current.instant_value), (double)t_before/1000000); 
-  //}
+  }
+  else{
+    voltage.time_now=(double)t_before/1000000;
+    current.time_now=(double)t_before/1000000;
+    power.time_now=(double)t_before/1000000;
+  }
   t_before2=t_before; 
   t_before=t; 
 }
-

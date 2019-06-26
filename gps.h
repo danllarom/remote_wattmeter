@@ -13,7 +13,6 @@ void gps_init(){
 }
 
 void set_time(){
-  
   while (SerialGPS.available()){
     
     if (gps.encode(SerialGPS.read())) {
