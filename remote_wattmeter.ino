@@ -3,7 +3,7 @@
 #include "gps.h"
 #include "wifiserver.h"
 #define PI 3.1415926
-
+#include <EEPROM.h>
 void sampling();
 
 double value[2] = {0,0};
@@ -40,8 +40,8 @@ time_t hour_time;
 
 Ads1256 adread(disp, cs, rdy, 0, 7680000);
 
-SignalProcessing voltage(gainVoltage, offsetVoltage, maxFrecuencies);
-SignalProcessing current(gainCurrent, offsetCurrent, maxFrecuencies);
+SignalProcessing voltage(gainVoltage*(double)gain_Voltage.datoF, (double)offset_Voltage.datoF, maxFrecuencies);
+SignalProcessing current(gainCurrent*(double)gain_Current.datoF, (double)offset_Current.datoF, maxFrecuencies);
 SignalProcessing power(1, 0, maxFrecuencies);
 
 void setup() {
@@ -53,6 +53,10 @@ void setup() {
   initserver();
   unsigned int val[2]={0x44AC08, 0x44AC08};
   adread.setOffset(val);
+  chargeData();
+  voltage.restartParameter(gainVoltage, (double)offset_Voltage.datoF, maxFrecuencies);
+  current.restartParameter(gainCurrent, offsetCurrent, maxFrecuencies);
+  power.restartParameter(1, 0, maxFrecuencies);
 }
 
 void loop() {
@@ -193,9 +197,16 @@ void loop() {
     pre_nowmicros=nowMicros();  
     
     if(reset_status==true){
-      ESP.restart();
-      //ESP.reset();
+      //ESP.restart();
+      ESP.reset();
     } 
+    if(calibrate_status==true){
+      voltage.restartParameter(gainVoltage*(double)gain_Voltage.datoF, (double)offset_Voltage.datoF, maxFrecuencies);
+      current.restartParameter(gainCurrent*(double)gain_Current.datoF, (double)offset_Current.datoF, maxFrecuencies);
+      power.restartParameter(1, 0, maxFrecuencies);
+      calibrate_status=false;
+    } 
+        
   }
   if(micros()-t_data < 0){
     t_data=micros();
@@ -203,11 +214,11 @@ void loop() {
   if(micros()-t_gps < 0){
     t_gps=micros();
   }
-  Serial.print(power.instant_value);
-  Serial.print(",");
-  Serial.print(current.instant_value*100);
-  Serial.print(",");
-  Serial.println(voltage.instant_value);
+  //Serial.print(power.instant_value);
+  //Serial.print(",");
+  //Serial.print(current.instant_value*100);
+  //Serial.print(",");
+  //Serial.println(voltage.instant_value);
   //Serial.print(current.average_value*100);
   //Serial.print(",");
   //Serial.println(voltage.average_value*10);
