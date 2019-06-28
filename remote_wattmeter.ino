@@ -2,8 +2,9 @@
 #include "SignalProcessing.h"
 #include "gps.h"
 #include "wifiserver.h"
-#define PI 3.1415926
 #include <EEPROM.h>
+#define PI 3.1415926
+
 void sampling();
 
 double value[2] = {0,0};
@@ -18,7 +19,7 @@ int rdy[2]={16, 5};
 int rst=NULL;
 unsigned long spispeed=7680000;
 
-int gain[2]={2,2};
+
 float gainAmplifier=0.125;
 
 float gainDivResVol=3001;
@@ -26,9 +27,6 @@ float gainVoltage=gainAmplifier*gainDivResVol;
 
 float gainDivResCur=1/0.01;
 float gainCurrent=gainAmplifier*gainDivResCur;
-
-float offsetVoltage=-0.9;
-float offsetCurrent=0;
   
 float maxFrecuencies=60;
 double loosen;
@@ -46,23 +44,33 @@ SignalProcessing power(1, 0, maxFrecuencies);
 
 void setup() {
 // put your setup code here, to run once:
+  int gain[2]={0,0};
+  unsigned int offsetVal[2]={0x44AC08, 0x44AC08};
+  //pinMode(0, INPUT_PULLUP);
+  //attachInterrupt(digitalPinToInterrupt(0), handler, FALLING); 
+  
+  EEPROM.begin(512);
   Serial.begin(115200);
-  pinMode(0, INPUT);
-  attachInterrupt(digitalPinToInterrupt(0), handler, FALLING);
-  adread.ads1256config(1, gain, 0, 0, 0, 0, 0, 1);
+
+  
   initserver();
-  unsigned int val[2]={0x44AC08, 0x44AC08};
-  adread.setOffset(val);
+  
   chargeData();
-  voltage.restartParameter(gainVoltage, (double)offset_Voltage.datoF, maxFrecuencies);
-  current.restartParameter(gainCurrent, offsetCurrent, maxFrecuencies);
+  voltage.restartParameter(gainVoltage*(double)gain_Voltage.datoF, (double)offset_Voltage.datoF, maxFrecuencies);
+  current.restartParameter(gainCurrent*(double)gain_Current.datoF, (double)offset_Current.datoF, maxFrecuencies);
   power.restartParameter(1, 0, maxFrecuencies);
+  
+  gain[0]=(int)PGAvoltage;
+  gain[1]=(int)PGAcurrent;
+  adread.ads1256config((int)DataRate, gain, 0, 0, 0, 0, 0, 1);
+  adread.ads1256config(1, gain, 0, 0, 0, 0, 0, 1);
+  adread.setOffset(offsetVal);
 }
 
 void loop() {
-  if (gps.encode(SerialGPS.read())==0) {
+  //if (gps.encode(SerialGPS.read())==0) {
     sampling();
-  }
+  //}
   delayMicroseconds(2);
   server.handleClient();
   delayMicroseconds(2);
@@ -174,13 +182,13 @@ void loop() {
     t_data=micros();
     time_now(hour_time, date);  
     if(shipping_status==false && lines_mensage<50){
-      sprintf(data, "% 10s %s %010.2f %010.2f %010.2f %010.2f\n", device, date, voltage.average_quadratic_value, current.average_quadratic_value, power.average_value, power.average_negative_values_respect_average_value);//loosen);
+      sprintf(data, "% 10s %s %010.2f %010.2f %010.2f %010.2f\n", name_device, date, voltage.average_quadratic_value, current.average_quadratic_value, power.average_value, power.average_negative_values_respect_average_value);//loosen);
       sprintf(mesage1, "%s%s", mesage1, data);
       lines_mensage++;
     }
     if(shipping_status==true){
       sprintf(mesage1,"____device ___________time ______date ___Voltage ___Current _____Power __Reactive\n");
-      sprintf(data, "% 10s %s %010.2f %010.2f %010.2f %010.2f\n", device, date, voltage.average_quadratic_value, current.average_quadratic_value, power.average_value, power.average_negative_values_respect_average_value);//loosen);
+      sprintf(data, "% 10s %s %010.2f %010.2f %010.2f %010.2f\n", name_device, date, voltage.average_quadratic_value, current.average_quadratic_value, power.average_value, power.average_negative_values_respect_average_value);//loosen);
       sprintf(mesage1, "%s%s", mesage1, data);
       shipping_status=false;
       lines_mensage=0;
@@ -201,12 +209,12 @@ void loop() {
       ESP.reset();
     } 
     if(calibrate_status==true){
+      chargeData();
       voltage.restartParameter(gainVoltage*(double)gain_Voltage.datoF, (double)offset_Voltage.datoF, maxFrecuencies);
       current.restartParameter(gainCurrent*(double)gain_Current.datoF, (double)offset_Current.datoF, maxFrecuencies);
       power.restartParameter(1, 0, maxFrecuencies);
       calibrate_status=false;
-    } 
-        
+    }        
   }
   if(micros()-t_data < 0){
     t_data=micros();
